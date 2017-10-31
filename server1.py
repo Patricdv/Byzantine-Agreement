@@ -16,6 +16,11 @@ server3Port = 50003
 server4Host = '127.0.0.1'
 server4Port = 50004
 
+server1Value = 1
+server2Value = 0
+server3Value = 0
+server4Value = 0
+
 def connect(connection):
     # Connect with the client and generate a unique filename
     fileName = "received-files/" + str(uuid.uuid4())
@@ -39,8 +44,6 @@ def connect(connection):
         #########################################################
 	    # Calculate the distance between the points and respond #
         #########################################################
-
-        print fileName
 
         message = connection.recv(1024)
         if (message == "READY"):
@@ -93,6 +96,15 @@ def conectado(connection, client):
         connection.close()
     thread.exit()
 
+def connect2(connection):
+	print "Connect server 2"
+
+def connect3(connection):
+	print "Connect server 3"
+
+def connect4(connection):
+	print "Connect server 4"
+
 # Create a socket that use IPV4 and TCP protocol
 # Bind the port for this process conections
 # Set the maximun number of queued connections
@@ -135,8 +147,9 @@ except socket.error as sem:
     print(sem)
     sys.exit()
 
-actualSocket.send("GETFILE")
-sendFile(host, port, filePath)
+server2Socket.send("GETNUMBER")
+server3Socket.send("GETNUMBER")
+server4Socket.send("GETNUMBER")
 
 try:
     while True:

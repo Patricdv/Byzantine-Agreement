@@ -9,100 +9,25 @@ from math import radians, cos, sin, asin, sqrt
 HOST = ''
 PORT = 50002
 
-def calculateHaversine(lon1, lat1, lon2, lat2):
-    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+server1Host = '127.0.0.1'
+server1Port = 50001
+server3Host = '127.0.0.1'
+server3Port = 50003
+server4Host = '127.0.0.1'
+server4Port = 50004
 
-    # haversine formula
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-    c = 2 * asin(sqrt(a))
-    r = 6371
-    return c * r
-
-def calculateDistance(fileName):
-    # Function that reads the coordinates in file and send to haversine formula
-
-    actualFile = open(fileName, "rb+")
-    lines = actualFile.readlines()
-    actualFile.seek(0)
-    actualFile.truncate()
-    for line in lines:
-        actualFile.write('(')
-	line = line.replace("(", "")
-	line = line.replace(")", "")
-	line = line.replace(" ", "")
-	line = line.replace("\n", "")
-	line = line.replace("\r", "")
-
-	coordinates = line.split(",")
-	for coordinate in coordinates:
-            actualFile.write(str(coordinate) + ', ')
-
-	distance = calculateHaversine(float(coordinates[0]), float(coordinates[1]), float(coordinates[2]), float(coordinates[3]))
-        actualFile.write(str(distance) + ')\n')
-    actualFile.close()
+server1Value = 0
+server2Value = 2
+server3Value = 0
+server4Value = 0
 
 def connect(connection):
     # Connect with the client and generate a unique filename
-    fileName = "received-files/" + str(uuid.uuid4())
+    # fileName = "received-files/" + str(uuid.uuid4())
 
     try:
         # Save the coordinates file on the server directory
-        file = open(fileName, 'wb')
-        connection.send("READY")
-        print("Downloading file...")
-
-        while True:
-            response = connection.recv(4096)
-            if (response == "-END-"):
-                file.close()
-                break
-            file.write(response)
-
-        connection.send("FINISHED")
-        print("Succesfully downloaded file as " + fileName)
-
-        #########################################################
-	# Calculate the distance between the points and respond #
-        #########################################################
-
-        calculateDistance(fileName)
-
-        message = connection.recv(1024)
-        if (message == "READY"):
-            try:
-                finalFile = open(fileName, 'rb')
-                reading = finalFile.read(4096)
-                connection.send(reading)
-                while reading != "":
-                    reading = finalFile.read(4096)
-                    connection.send(reading)
-
-                # waiting for finishing the file send
-                time.sleep(1)
-                connection.send("-END-")
-
-                print("finished sending")
-                finalFile.close()
-
-                response = connection.recv(1024)
-
-                # If the file has been sended successfully
-                if (response == "FINISHED"):
-                    print("File succesfully sended.")
-                else:
-                    print("Failed to send file.")
-
-                connection.close()
-            except Exception as msg:
-                print("Error on send file:" + msg)
-                connection.close()
-        else:
-            print("Error: Didn't expect the message: " + message)
-            connection.close()
-
-        #######################################################
+        message = connection.send(server2Value)
 
     except Exception as msg:
         connection.send("ERROR")
@@ -113,7 +38,7 @@ def connect(connection):
 def conectado(connection, client):
     ###Function that starts a new thread for the connection
     msg = connection.recv(1024)
-    if (msg == "GETFILE"):
+    if (msg == "GETNUMBER"):
         print("Connection started with " + str(client))
         connect(connection)
     else:
@@ -140,6 +65,30 @@ print("TCP started and already listening...")
 
 # Server accept connections until a keyboard interrupt
 # If there is a keyboard interrupt, release the port
+
+time.sleep(30)
+
+server1Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server3Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server4Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+try:
+	server1Socket.connect((server1Host, int(server1Port)))
+	print("Connected to 1!")
+
+	server3Socket.connect((server3Host, int(server3Port)))
+	print("Connected to 3!")
+
+	server4Socket.connect((server4Host, int(server4Port)))
+	print("Connected to 4!")
+
+except socket.error as sem:
+    print("ERROR: Couldn't connect.")
+    print(sem)
+    sys.exit()
+
+# actualSocket.send("GETFILE")
+# sendFile(host, port, filePath)
 
 try:
     while True:

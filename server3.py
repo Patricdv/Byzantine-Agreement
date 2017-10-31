@@ -9,6 +9,18 @@ from math import radians, cos, sin, asin, sqrt
 HOST = ''
 PORT = 50003
 
+server1Host = '127.0.0.1'
+server1Port = 50001
+server2Host = '127.0.0.1'
+server2Port = 50002
+server4Host = '127.0.0.1'
+server4Port = 50004
+
+server1Value = 0
+server2Value = 0
+server3Value = 3
+server4Value = 0
+
 def connect(connection):
     # Connect with the client and generate a unique filename
     fileName = "received-files/" + str(uuid.uuid4())
@@ -104,6 +116,30 @@ print("TCP started and already listening...")
 
 # Server accept connections until a keyboard interrupt
 # If there is a keyboard interrupt, release the port
+
+time.sleep(30)
+
+server1Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server2Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server4Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+try:
+	server1Socket.connect((server1Host, int(server1Port)))
+	print("Connected to 1!")
+
+	server2Socket.connect((server2Host, int(server2Port)))
+	print("Connected to 2!")
+
+	server4Socket.connect((server4Host, int(server4Port)))
+	print("Connected to 4!")
+
+except socket.error as sem:
+    print("ERROR: Couldn't connect.")
+    print(sem)
+    sys.exit()
+
+# actualSocket.send("GETFILE")
+# sendFile(host, port, filePath)
 
 try:
     while True:
