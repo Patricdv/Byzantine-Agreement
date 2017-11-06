@@ -3,8 +3,6 @@ import thread
 import sys
 import os
 import time
-import uuid
-from math import radians, cos, sin, asin, sqrt
 
 HOST = ''
 PORT = 50001
@@ -16,69 +14,26 @@ server3Port = 50003
 server4Host = '127.0.0.1'
 server4Port = 50004
 
-server1Value = 1
-server2Value = 0
-server3Value = 0
-server4Value = 0
+serverValue = 1
+server1Values = [1, 0, 0, 0]
+server2Values = [0, 0, 0, 0]
+server3Values = [0, 0, 0, 0]
+server4Values = [0, 0, 0, 0]
 
-def connect(connection):
-    # Connect with the client and generate a unique filename
-    fileName = "received-files/" + str(uuid.uuid4())
-
+def getNumber(connection):
     try:
-        # Save the coordinates file on the server directory
-        file = open(fileName, 'wb')
-        connection.send("READY")
-        print("Downloading file...")
+        connection.send("SENDNUMBER");
+        serverNumber = connection.recv(sizeof(int))
+        serverNumber = int(serverNumber)
+        print("getting information from server" + serverNumber)
 
-        while True:
-            response = connection.recv(4096)
-            if (response == "-END-"):
-                file.close()
-                break
-            file.write(response)
+        information = connection.recv(sizeof(int))
+        print information
 
-        connection.send("FINISHED")
-        print("Succesfully downloaded file as " + fileName)
-
-        #########################################################
-	    # Calculate the distance between the points and respond #
-        #########################################################
-
-        message = connection.recv(1024)
-        if (message == "READY"):
-            try:
-                finalFile = open(fileName, 'rb')
-                reading = finalFile.read(4096)
-                connection.send(reading)
-                while reading != "":
-                    reading = finalFile.read(4096)
-                    connection.send(reading)
-
-                # waiting for finishing the file send
-                time.sleep(1)
-                connection.send("-END-")
-
-                print("finished sending")
-                finalFile.close()
-
-                response = connection.recv(1024)
-
-                # If the file has been sended successfully
-                if (response == "FINISHED"):
-                    print("File succesfully sended.")
-                else:
-                    print("Failed to send file.")
-
-                connection.close()
-            except Exception as msg:
-                print("Error on send file:" + msg)
-                connection.close()
-        else:
-            print("Error: Didn't expect the message: " + message)
-            connection.close()
-
-        #######################################################
+        server1Values[serverNumber-1] = int(information)
+        if serverNumber == 4:
+            time.sleep(5)
+            print server1Values
 
     except Exception as msg:
         connection.send("ERROR")
@@ -86,24 +41,26 @@ def connect(connection):
         print("Error message: " + str(msg))
         return
 
-def conectado(connection, client):
+def sendNumber(connection):
+
+    print "Sending server number"
+    connection.send(str(serverValue))
+
+    print "Sending server value"
+    connection.send(str(serverValue))
+
+def connected(connection, client):
     ###Function that starts a new thread for the connection
     msg = connection.recv(1024)
-    if (msg == "GETFILE"):
+    if (msg == "GETNUMBER"):
         print("Connection started with " + str(client))
-        connect(connection)
+        getNumber(connection)
+    elif (msg == "SENDNUMBER"):
+        print("Connection started with " + str(client))
+        sendNumber(connection)
     else:
         connection.close()
     thread.exit()
-
-def connect2(connection):
-	print "Connect server 2"
-
-def connect3(connection):
-	print "Connect server 3"
-
-def connect4(connection):
-	print "Connect server 4"
 
 # Create a socket that use IPV4 and TCP protocol
 # Bind the port for this process conections
@@ -156,7 +113,7 @@ try:
         connection, client = tcp.accept()
 
         # For every connect a new thread will be created
-        thread.start_new_thread(conectado, tuple([connection, client]))
+        thread.start_new_thread(connected, tuple([connection, client]))
 
 except KeyboardInterrupt:
     print("\n\n--- TCP connection ended ---")

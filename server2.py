@@ -3,8 +3,6 @@ import thread
 import sys
 import os
 import time
-import uuid
-from math import radians, cos, sin, asin, sqrt
 
 HOST = ''
 PORT = 50002
@@ -16,18 +14,34 @@ server3Port = 50003
 server4Host = '127.0.0.1'
 server4Port = 50004
 
-server1Value = 0
-server2Value = 2
-server3Value = 0
-server4Value = 0
+serverValue = 2
+server1Values = [0, 0, 0, 0]
+server2Values = [0, 2, 0, 0]
+server3Values = [0, 0, 0, 0]
+server4Values = [0, 0, 0, 0]
 
-def connect(connection):
-    # Connect with the client and generate a unique filename
-    # fileName = "received-files/" + str(uuid.uuid4())
 
+def getNumber(connection):
     try:
-        # Save the coordinates file on the server directory
-        message = connection.send(server2Value)
+        connection.send("SENDNUMBER");
+        serverNumber = connection.recv(sizeof(int))
+        serverNumber = int(serverNumber)
+        print("getting information from server" + serverNumber)
+
+        information = connection.recv(sizeof(int))
+        print information
+
+        server2Values[serverNumber-1] = int(information)
+
+        if serverNumber == 1:
+            time.sleep(5)
+            server1Socket.send("GETNUMBER")
+            server3Socket.send("GETNUMBER")
+            server4Socket.send("GETNUMBER")
+
+        if serverNumber == 4:
+            time.sleep(5)
+            print server2Values
 
     except Exception as msg:
         connection.send("ERROR")
@@ -35,12 +49,23 @@ def connect(connection):
         print("Error message: " + str(msg))
         return
 
-def conectado(connection, client):
+def sendNumber(connection):
+
+    print "Sending server number"
+    connection.send(str(serverValue))
+
+    print "Sending server value"
+    connection.send(str(serverValue))
+
+def connected(connection, client):
     ###Function that starts a new thread for the connection
     msg = connection.recv(1024)
     if (msg == "GETNUMBER"):
         print("Connection started with " + str(client))
-        connect(connection)
+        getNumber(connection)
+    elif (msg == "SENDNUMBER"):
+        print("Connection started with " + str(client))
+        sendNumber(connection)
     else:
         connection.close()
     thread.exit()
@@ -95,7 +120,7 @@ try:
         connection, client = tcp.accept()
 
         # For every connect a new thread will be created
-        thread.start_new_thread(conectado, tuple([connection, client]))
+        thread.start_new_thread(connected, tuple([connection, client]))
 
 except KeyboardInterrupt:
     print("\n\n--- TCP connection ended ---")
