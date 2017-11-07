@@ -60,6 +60,32 @@ def getNumber(connection):
 
             print server4Values
 
+        if serverNumber == 1:
+            time.sleep(30)
+            msg = connection.recv(1024)
+            if (msg == "SENDSERVERVALUES"):
+                print("Connection started to send server values")
+                sendServerValues(connection)
+        
+    except Exception as msg:
+        connection.send("ERROR")
+        #File Error.
+        print("Error message: " + str(msg))
+        return
+
+def sendServerValues(connection):
+    try:
+        connection.send("GETVALUES");
+        print "Sending Server Values"
+        connection.send(str(serverValue))
+
+        connection.send(str(server4Values[0]))
+        connection.send(str(server4Values[1]))
+        connection.send(str(server4Values[2]))
+        connection.send(str(server4Values[3]))
+
+        print "Finish Sending Values"
+
     except Exception as msg:
         connection.send("ERROR")
         #File Error.
@@ -79,6 +105,9 @@ def connected(connection, client):
     if (msg == "GETNUMBER"):
         print("Connection started with " + str(client))
         getNumber(connection)
+    elif (msg == "SENDSERVERVALUES"):
+        print("Connection started to send server values")
+        sendServerValues(connection)
     elif (msg == "SENDNUMBER"):
         print("Connection started with " + str(client))
         sendNumber(connection)

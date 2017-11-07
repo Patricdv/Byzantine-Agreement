@@ -20,6 +20,63 @@ server2Values = [0, 0, 0, 0]
 server3Values = [0, 0, 0, 0]
 server4Values = [0, 0, 0, 0]
 
+def doByzantineAgreement():
+    print "\nStarting Byzantine Agreement:"
+    print "Server Values:"
+    print server1Values
+    print server2Values
+    print server3Values
+    print server4Values
+
+def receiveServerValues(connection):
+    serverNumber = connection.recv(8)
+    serverNumber = int(serverNumber)
+
+    serverValues = [0, 0, 0, 0]
+    serverValues[0] = connection.recv(8)
+    serverValues[1] = connection.recv(8)
+    serverValues[2] = connection.recv(8)
+    serverValues[3] = connection.recv(8)
+
+    print serverNumber
+
+    if serverNumber == 2:
+        server2Values[0] = int(serverValues[0])
+        server2Values[1] = int(serverValues[1])
+        server2Values[2] = int(serverValues[2])
+        server2Values[3] = int(serverValues[3])
+
+    if serverNumber == 3:
+        server3Values[0] = int(serverValues[0])
+        server3Values[1] = int(serverValues[1])
+        server3Values[2] = int(serverValues[2])
+        server3Values[3] = int(serverValues[3])
+
+    if serverNumber == 4:
+        server4Values[0] = int(serverValues[0])
+        server4Values[1] = int(serverValues[1])
+        server4Values[2] = int(serverValues[2])
+        server4Values[3] = int(serverValues[3])
+
+def getAllValues():
+    server2Socket.send("SENDSERVERVALUES")
+    returnMessage = server2Socket.recv(1024)
+    if (returnMessage == "GETVALUES"):
+        print("Connection started with 2")
+        receiveServerValues(server2Socket)
+
+    server3Socket.send("SENDSERVERVALUES")
+    returnMessage = server3Socket.recv(1024)
+    if (returnMessage == "GETVALUES"):
+        print("Connection started with 3")
+        receiveServerValues(server3Socket)
+
+    server4Socket.send("SENDSERVERVALUES")
+    returnMessage = server4Socket.recv(1024)
+    if (returnMessage == "GETVALUES"):
+        print("Connection started with 4")
+        receiveServerValues(server4Socket)
+
 def getNumber(connection):
     try:
         connection.send("SENDNUMBER");
@@ -37,6 +94,27 @@ def getNumber(connection):
         if serverNumber == 4:
             time.sleep(5)
             print server1Values
+
+            time.sleep(3)
+            getAllValues()
+
+            doByzantineAgreement()
+
+    except Exception as msg:
+        connection.send("ERROR")
+        #File Error.
+        print("Error message: " + str(msg))
+        return
+
+def sendServerValues(connection):
+    try:
+        connection.send("GETVALUES");
+        print "Sending Server Values"
+        time.sleep(1)
+        connection.send(str(serverValue))
+
+        for value in server1Values:
+            connection.send(str(value))
 
     except Exception as msg:
         connection.send("ERROR")
@@ -57,6 +135,9 @@ def connected(connection, client):
     if (msg == "GETNUMBER"):
         print("Connection started with " + str(client))
         getNumber(connection)
+    elif (msg == "SENDSERVERVALUES"):
+        print("Connection started to send server values")
+        sendServerValues(connection)
     elif (msg == "SENDNUMBER"):
         print("Connection started with " + str(client))
         sendNumber(connection)

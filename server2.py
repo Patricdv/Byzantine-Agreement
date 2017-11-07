@@ -57,9 +57,34 @@ def getNumber(connection):
                 print("Connection started with 4")
                 sendNumber(server4Socket)
 
+            time.sleep(30)
+            msg = connection.recv(1024)
+            if (msg == "SENDSERVERVALUES"):
+                print("Connection started to send server values")
+                sendServerValues(connection)
+
         if serverNumber == 4:
             time.sleep(5)
             print server2Values
+
+    except Exception as msg:
+        connection.send("ERROR")
+        #File Error.
+        print("Error message: " + str(msg))
+        return
+
+def sendServerValues(connection):
+    try:
+        connection.send("GETVALUES");
+        print "Sending Server Values"
+        connection.send(str(serverValue))
+
+        connection.send(str(server2Values[0]))
+        connection.send(str(server2Values[1]))
+        connection.send(str(server2Values[2]))
+        connection.send(str(server2Values[3]))
+
+        print "Finish Sending Values"
 
     except Exception as msg:
         connection.send("ERROR")
@@ -75,11 +100,14 @@ def sendNumber(connection):
     connection.send(str(serverValue))
 
 def connected(connection, client):
-    ###Function that starts a new thread for the connection
+    ###  Function that starts a new thread for the connection
     msg = connection.recv(1024)
     if (msg == "GETNUMBER"):
         print("Connection started with " + str(client))
         getNumber(connection)
+    elif (msg == "SENDSERVERVALUES"):
+        print("Connection started to send server values")
+        sendServerValues(connection)
     elif (msg == "SENDNUMBER"):
         print("Connection started with " + str(client))
         sendNumber(connection)
