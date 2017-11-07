@@ -17,7 +17,8 @@ server4Host = '127.0.0.1'
 server4Port = 50004
 
 
-serverValue = 1
+serverValue = 3
+fictionalValue = 5
 server1Values = [0, 0, 0, 0]
 server2Values = [0, 0, 0, 0]
 server3Values = [0, 0, 3, 0]
@@ -27,20 +28,38 @@ server4Values = [0, 0, 0, 0]
 def getNumber(connection):
     try:
         connection.send("SENDNUMBER");
-        serverNumber = connection.recv(sizeof(int))
-        serverNumber = int(serverNumber)
+        serverNumber = connection.recv(8)
         print("getting information from server" + serverNumber)
+        serverNumber = int(serverNumber)
 
-        information = connection.recv(sizeof(int))
+        print '\nValue:',
+
+        information = connection.recv(8)
+        information = int(information)
         print information
 
-        server3Values[serverNumber-1] = int(information)
+        server3Values[serverNumber-1] = information
 
         if serverNumber == 2:
             time.sleep(5)
+
             server1Socket.send("GETNUMBER")
+            returnMessage = server1Socket.recv(1024)
+            if (returnMessage == "SENDNUMBER"):
+                print("Connection started with 1")
+                sendNumber(server1Socket)
+
             server2Socket.send("GETNUMBER")
+            returnMessage = server2Socket.recv(1024)
+            if (returnMessage == "SENDNUMBER"):
+                print("Connection started with 2")
+                sendNumber(server2Socket)
+
             server4Socket.send("GETNUMBER")
+            returnMessage = server4Socket.recv(1024)
+            if (returnMessage == "SENDNUMBER"):
+                print("Connection started with 4")
+                sendNumber(server4Socket)
 
         if serverNumber == 4:
             time.sleep(5)
@@ -53,12 +72,15 @@ def getNumber(connection):
         return
 
 def sendNumber(connection):
+    global fictionalValue
 
     print "Sending server number"
     connection.send(str(serverValue))
-
+    time.sleep(1)
     print "Sending server value"
-    connection.send(str(serverValue))
+    connection.send(str(fictionalValue))
+
+    fictionalValue += 1
 
 def connected(connection, client):
     ###Function that starts a new thread for the connection

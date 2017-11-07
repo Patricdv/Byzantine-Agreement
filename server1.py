@@ -23,14 +23,17 @@ server4Values = [0, 0, 0, 0]
 def getNumber(connection):
     try:
         connection.send("SENDNUMBER");
-        serverNumber = connection.recv(sizeof(int))
-        serverNumber = int(serverNumber)
+        serverNumber = connection.recv(8)
         print("getting information from server" + serverNumber)
+        serverNumber = int(serverNumber)
 
-        information = connection.recv(sizeof(int))
+        print '\nValue:',
+
+        information = connection.recv(8)
+        information = int(information)
         print information
 
-        server1Values[serverNumber-1] = int(information)
+        server1Values[serverNumber-1] = information
         if serverNumber == 4:
             time.sleep(5)
             print server1Values
@@ -42,10 +45,9 @@ def getNumber(connection):
         return
 
 def sendNumber(connection):
-
     print "Sending server number"
     connection.send(str(serverValue))
-
+    time.sleep(1)
     print "Sending server value"
     connection.send(str(serverValue))
 
@@ -105,8 +107,22 @@ except socket.error as sem:
     sys.exit()
 
 server2Socket.send("GETNUMBER")
+returnMessage = server2Socket.recv(1024)
+if (returnMessage == "SENDNUMBER"):
+    print("Connection started with 2")
+    sendNumber(server2Socket)
+
 server3Socket.send("GETNUMBER")
+returnMessage = server3Socket.recv(1024)
+if (returnMessage == "SENDNUMBER"):
+    print("Connection started with 3")
+    sendNumber(server3Socket)
+
 server4Socket.send("GETNUMBER")
+returnMessage = server4Socket.recv(1024)
+if (returnMessage == "SENDNUMBER"):
+    print("Connection started with 4")
+    sendNumber(server4Socket)
 
 try:
     while True:

@@ -16,29 +16,48 @@ server2Port = 50002
 server3Host = '127.0.0.1'
 server3Port = 50003
 
-serverValue = 1
+serverValue = 4
 server1Values = [0, 0, 0, 0]
 server2Values = [0, 0, 0, 0]
-server3Values = [0, 0, 3, 0]
-server4Values = [0, 0, 0, 0]
+server3Values = [0, 0, 0, 0]
+server4Values = [0, 0, 0, 4]
 
 
 def getNumber(connection):
     try:
         connection.send("SENDNUMBER");
-        serverNumber = connection.recv(sizeof(int))
+        serverNumber = connection.recv(8)
+        print("getting information from server " + serverNumber)
         serverNumber = int(serverNumber)
-        print("getting information from server" + serverNumber)
 
-        information = connection.recv(sizeof(int))
+        print '\nValue:',
+
+        information = connection.recv(8)
+        information = int(information)
         print information
 
-        server4Values[serverNumber-1] = int(information)
+        server4Values[serverNumber-1] = information
         if serverNumber == 3:
             time.sleep(5)
+
             server1Socket.send("GETNUMBER")
+            returnMessage = server1Socket.recv(1024)
+            if (returnMessage == "SENDNUMBER"):
+                print("Connection started with 1")
+                sendNumber(server1Socket)
+
             server2Socket.send("GETNUMBER")
+            returnMessage = server2Socket.recv(1024)
+            if (returnMessage == "SENDNUMBER"):
+                print("Connection started with 2")
+                sendNumber(server2Socket)
+
             server3Socket.send("GETNUMBER")
+            returnMessage = server3Socket.recv(1024)
+            if (returnMessage == "SENDNUMBER"):
+                print("Connection started with 3")
+                sendNumber(server3Socket)
+
             print server4Values
 
     except Exception as msg:
@@ -48,10 +67,9 @@ def getNumber(connection):
         return
 
 def sendNumber(connection):
-
     print "Sending server number"
     connection.send(str(serverValue))
-
+    time.sleep(1)
     print "Sending server value"
     connection.send(str(serverValue))
 
