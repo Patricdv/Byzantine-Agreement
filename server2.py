@@ -136,7 +136,7 @@ print("TCP started and already listening...")
 # Server accept connections until a keyboard interrupt
 # If there is a keyboard interrupt, release the port
 
-time.sleep(30)
+time.sleep(5)
 
 server1Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server3Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
