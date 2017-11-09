@@ -16,9 +16,12 @@ server4Port = 50004
 
 serverValue = 1
 server1Values = [1, 0, 0, 0]
-server2Values = [0, 0, 0, 0]
-server3Values = [0, 0, 0, 0]
-server4Values = [0, 0, 0, 0]
+server2Values = [1, 2, 6, 4]
+server3Values = [1, 2, 3, 4]
+server4Values = [1, 2, 7, 4]
+
+serversQuantity = 4
+testServers = {}
 
 def doByzantineAgreement():
     print "\nStarting Byzantine Agreement:"
@@ -27,6 +30,44 @@ def doByzantineAgreement():
     print server2Values
     print server3Values
     print server4Values
+
+    count = 0
+    percentage = 100/serversQuantity
+    for key in range(0, serversQuantity):
+        print "testing server: ",
+        print key
+
+        testServers = {}
+        count = 0
+        testServers.update({server1Values[key]: percentage})
+
+        if server2Values[key] in testServers:
+            testServers[server2Values[key]] += percentage
+        else:
+            testServers.update({server2Values[key]: percentage})
+
+        if server3Values[key] in testServers:
+            testServers[server3Values[key]] += percentage
+        else:
+            testServers.update({server3Values[key]: percentage})
+
+        if server4Values[key] in testServers:
+            testServers[server4Values[key]] += percentage
+        else:
+            testServers.update({server4Values[key]: percentage})
+
+        for x in testServers:
+            if testServers[x] >= 60:
+                count +=1
+                print "Server ",
+                print key+1,
+                print " isn't a traitor"
+                break
+
+        if count == 0:
+            print "This sith server ",
+            print key+1,
+            print " is a traitor"
 
 def receiveServerValues(connection):
     serverNumber = connection.recv(8)
@@ -95,7 +136,7 @@ def getNumber(connection):
             time.sleep(5)
             print server1Values
 
-            time.sleep(3)
+            time.sleep(60)
             getAllValues()
 
             doByzantineAgreement()

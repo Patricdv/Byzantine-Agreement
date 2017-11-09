@@ -66,7 +66,7 @@ def getNumber(connection):
             if (msg == "SENDSERVERVALUES"):
                 print("Connection started to send server values")
                 sendServerValues(connection)
-        
+
     except Exception as msg:
         connection.send("ERROR")
         #File Error.
